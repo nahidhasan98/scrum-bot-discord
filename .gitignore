@@ -123,3 +123,6 @@ Pipfile.lock
 
 # pip generated files:
 pip-wheel-metadata/
+
+# DB file
+*.db
