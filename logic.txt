@@ -1,0 +1,17 @@
+Auto:
+at 10PM:
+11:00PM
+11:30PM
+
+Send empty response to public channel at 12:05AM
+
+Manual:
+
+
+!update
+
+communicate with DM
+
+What tasks have you been assigned for today?
+Which tasks have you completed?
+Are there any blockers you are facing?
