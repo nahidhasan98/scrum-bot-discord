@@ -22,7 +22,7 @@ def is_eligible(message):
         print("bot is not eligible")
         return False
     
-    # Check if the command was invoked in the direct message to BOT
+    # Check if the message is a DM sent to the bot
     if not isinstance(message.channel, discord.DMChannel):
         print("message to channel is not eligible")
         return False
