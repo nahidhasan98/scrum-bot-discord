@@ -9,8 +9,6 @@ from config import db
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
-GUILD = os.getenv('DISCORD_BOT_GUILD')
-BOT_ID = int(os.getenv('BOT_ID'))
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -24,10 +22,10 @@ def is_eligible(message):
         print("bot is not eligible")
         return False
     
-    # Check if the command was invoked in the desired channel
-    if message.channel.id != BOT_ID:
-        print("channel is not eligible")
-        return False # Ignore commands not in the desired channel
+    # Check if the command was invoked in the direct message to BOT
+    if not isinstance(message.channel, discord.DMChannel):
+        print("message to channel is not eligible")
+        return False
     
     return True
 
@@ -74,6 +72,7 @@ async def on_ready():
     
 @client.event
 async def on_message(message):
+    print(f'Message Details: {message}')
     if not is_eligible(message):
         return
     
