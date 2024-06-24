@@ -4,7 +4,7 @@ import pytz
 from dotenv import load_dotenv
 import discord
 from discord.ext import tasks
-from service import users, questions, records, gsheet
+from service import users, questions, records, report
 from config import db
 
 load_dotenv()
@@ -66,15 +66,12 @@ def get_question(message):
                 return value['question']
     
     if answered_counter >= 3:
-        return "Thank you. You have answered all 3 questions. To update your answers please give **/reset** command."
+        return "You already have answered all 3 questions. To update your answers please give **/reset** command."
  
 @client.event
 async def on_ready():
     print(f'{client.user.name} has connected to Discord!')
-    channel = client.get_channel(TODO_CHANNEL_ID)
-    print(f'Channel {channel} is active')
     auto_ping.start()
-    gsheet.update_report()
     
 @client.event
 async def on_message(message):
@@ -126,7 +123,8 @@ async def auto_ping():
                     print(f'User with ID {row["discord_user_id"]} not found')
     
     if now.hour == twelve_five.hour and now.minute == twelve_five.minute:
-        gsheet.update_report()
+        report.discord_channel(client, datetime.date.today())
+        report.gsheet()
     
 if __name__ == "__main__":
     client.run(TOKEN)

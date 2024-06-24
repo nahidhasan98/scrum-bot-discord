@@ -126,3 +126,6 @@ pip-wheel-metadata/
 
 # DB file
 *.db
+
+# google service account credentials
+credentials.json

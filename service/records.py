@@ -180,9 +180,39 @@ def get_per_user_status(date):
         results = cursor.fetchall()
         
         if os.getenv('MODE') == "dev":
-            print(f'ping status:')
+            print(f'per user status:')
             for row in results:
                 print(f'id = {row["id"]}, count = {row["count"]}, discord_user_id = {row["discord_user_id"]}')
+                
+        return results
+
+    except(Exception) as error:
+        print(error)
+        
+    finally:
+        connection.close()
+
+def get_per_user_answer(date):
+    connection = db.get_db()
+    try:
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        query = """
+        SELECT users.id, users.discord_display_name, users.discord_user_id, questions.question, records.answer
+        FROM users
+        LEFT JOIN records ON records.user_id = users.id
+        AND records.date = ?
+        LEFT JOIN questions ON questions.id = records.question_id 
+        ORDER BY users.id, records.question_id;
+        """
+
+        cursor.execute(query, (date,))
+        results = cursor.fetchall()
+        
+        if os.getenv('MODE') == "dev":
+            print(f'per user answer:')
+            for row in results:
+                print(f'id = {row["id"]}, discord_display_name = {row["discord_display_name"]}, discord_user_id = {row["discord_user_id"]}, question = {row["question"]}, answer = {row["answer"]}')
                 
         return results
 
