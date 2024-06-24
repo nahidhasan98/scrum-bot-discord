@@ -10,7 +10,6 @@ from config import db
 load_dotenv()
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 GUILD = os.getenv('DISCORD_BOT_GUILD')
-TODO_CHANNEL_ID = int(os.getenv('TODO_CHANNEL_ID'))
 BOT_ID = int(os.getenv('BOT_ID'))
 
 intents = discord.Intents.default()

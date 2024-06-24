@@ -27,7 +27,7 @@ async def discord_channel(client, date):
                 msg += f'```md\n'
             
             if row["question"] is None or row["question"] == "":
-                msg += f': No answer given at all.\n'
+                msg += f'No answer given at all.\n'
             else:
                 msg += f'> {row["question"]}\n'
                 
