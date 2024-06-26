@@ -198,7 +198,7 @@ def get_per_user_answer(date):
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         query = """
-        SELECT users.id, users.discord_display_name, users.discord_user_id, questions.question, records.answer
+        SELECT users.id, users.discord_display_name, users.discord_user_id, questions.id AS q_id, questions.question, records.answer
         FROM users
         LEFT JOIN records ON records.user_id = users.id
         AND records.date = ?

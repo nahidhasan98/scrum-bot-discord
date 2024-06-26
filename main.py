@@ -121,8 +121,10 @@ async def auto_ping():
                     print(f'User with ID {row["discord_user_id"]} not found')
     
     if now.hour == twelve_five.hour and now.minute == twelve_five.minute:
-        report.discord_channel(client, datetime.date.today())
-        report.gsheet()
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        results = records.get_per_user_answer(yesterday)
+        report.discord_channel(client, results)
+        report.gsheet(yesterday, results)
     
 if __name__ == "__main__":
     client.run(TOKEN)

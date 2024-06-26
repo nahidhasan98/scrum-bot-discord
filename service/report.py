@@ -7,11 +7,10 @@ from service import records
 
 load_dotenv()
 
-async def discord_channel(client, date):
+async def discord_channel(client, results):
     channel = client.get_channel(int(os.getenv('TODO_CHANNEL_ID')))
     
     if channel:
-        results = records.get_per_user_answer(date)
         user_id = 0
         msg = f'```'
         
@@ -53,23 +52,39 @@ def get_sheet():
     
     return sheet
 
-def gsheet():
+def gsheet(date, results):
     sheet = get_sheet()
     
-    worksheet_list = sheet.worksheets()
-    print(worksheet_list)
+    # worksheet_list = sheet.worksheets()
+    # print(worksheet_list)
     
     worksheet = sheet.worksheet("SenseVoice")
     print(worksheet)
     
-    list_of_lists = worksheet.get_all_values()
-    print(list_of_lists)
+    # list_of_lists = worksheet.get_all_values()
+    # print(list_of_lists)
     
-    list_of_dicts = worksheet.get_all_records()
-    print(list_of_dicts)
+    # list_of_dicts = worksheet.get_all_records()
+    # print(list_of_dicts)
     
-    # Data to be added (as a list)
-    row_data = ["Data1", "Data2", "Data3", "Data4"]
+    user_id = 0
+    row_data = []
+    
+    for row in results:
+        if user_id != row["id"]:
+            if user_id != 0:
+                worksheet.append_row(row_data)
+                row_data.clear()
+                time.sleep(3)
+            
+            # if row["q_id"] == 1: # According to sheet, currently we are considering only answer one
+            user_id = row["id"]
+            row_data.append(f'{date}')
+            row_data.append("SenseVoice")
+            row_data.append("")
+            row["answer"] = row["answer"] if row["answer"] is not None else ""
+            row_data.append(row["answer"])
+            row_data.append(row["discord_display_name"])
 
-    # Append the data to the sheet
-    worksheet.append_row(row_data)
+    if len(results) > 0:
+        worksheet.append_row(row_data)
