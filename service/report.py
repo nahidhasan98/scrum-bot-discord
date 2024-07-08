@@ -7,84 +7,117 @@ from service import records
 
 load_dotenv()
 
+sheet_id = os.getenv('GOOGLE_SHEET_ID')
+
+def prepare_final_message(counter, goal, updates, comments):
+    msg = f'> What tasks have you been assigned for today?\n'
+    msg += f'{goal}\n\n'
+
+    if counter == 1:
+        msg += f'> Have you completed the task?\n'
+    else:
+        msg += f'> Have you completed the tasks?\n'
+    msg += f'{updates}\n\n'
+
+    if counter == 1:
+        msg += f'> Any blockers/comments regarding this task?\n'
+    else:
+        msg += f'> Any blockers/comments regarding these tasks?\n'
+    msg += f'{comments}\n\n'
+
+    return msg
+
+
 async def discord_channel(client, results):
     channel = client.get_channel(int(os.getenv('TODO_CHANNEL_ID')))
-    
+
     if channel:
         user_id = 0
-        msg = f'```'
-        
-        for row in results:
-            if user_id != row["id"]:
-                if user_id != 0:
-                    msg += f'```'
-                    await channel.send(msg)
-                    time.sleep(3)
-                
-                user_id = row["id"]
-                msg = "<@" + row['discord_user_id'] + ">\n"
-                msg += f'```md\n'
-            
-            if row["question"] is None or row["question"] == "":
-                msg += f'No answer given at all.\n'
-            else:
-                msg += f'> {row["question"]}\n'
-                
-                if row["answer"] is None or row["answer"] == "":
-                    msg += "Not answered.\n"
-                else:
-                    msg += f': {row["answer"]}\n\n'
+        counter, goal, updates, comments = 0, "", "", ""
 
-        if len(results) > 0:
-            msg += f'```'
+        for row in results:
+            if user_id != int(row["user_id"]):
+                if user_id != 0:
+                    msg += prepare_final_message(
+                        counter, goal, updates, comments
+                    )
+                    msg += f'```'   # end tags
+                    await channel.send(msg)
+
+                    counter, goal, updates, comments = 0, "", "", ""
+                    time.sleep(3)
+
+            if counter == 0:
+                user_id = row["user_id"]
+                msg = "<@" + row['discord_user_id'] + ">\n"
+                msg += f'```md\n'   # start tags
+                msg += f'> Which module are you working on?\n'
+                msg += f': {row["module"]}\n\n'
+
+            counter += 1
+            goal += f'{counter}. {row["goal"]}\n'
+            updates += f'{counter}. {row["updates"]}\n'
+            comments += f'{counter}. {row["comments"]}\n'
+
+        if len(results) > 0:    # for last row/user
+            msg += prepare_final_message(
+                counter, goal, updates, comments
+            )
+            msg += f'```'   # end tags
             await channel.send(msg)
+
 
 def get_sheet():
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets"
     ]
 
-    creds = Credentials.from_service_account_file("credentials.json", scopes=scopes)
+    creds = Credentials.from_service_account_file(
+        "credentials.json", scopes=scopes)
     client = gspread.authorize(creds)
-    sheet_id = os.getenv('GOOGLE_SHEET_ID')
 
     sheet = client.open_by_key(sheet_id)
-    
+
     return sheet
 
-def gsheet(date, results):
-    sheet = get_sheet()
-    
-    # worksheet_list = sheet.worksheets()
-    # print(worksheet_list)
-    
-    worksheet = sheet.worksheet("SenseVoice")
-    print(worksheet)
-    
-    # list_of_lists = worksheet.get_all_values()
-    # print(list_of_lists)
-    
-    # list_of_dicts = worksheet.get_all_records()
-    # print(list_of_dicts)
-    
-    user_id = 0
-    row_data = []
-    
-    for row in results:
-        if user_id != row["id"]:
-            if user_id != 0:
-                worksheet.append_row(row_data)
-                row_data.clear()
-                time.sleep(3)
-            
-            # if row["q_id"] == 1: # According to sheet, currently we are considering only answer one
-            user_id = row["id"]
-            row_data.append(f'{date}')
-            row_data.append("SenseVoice")
-            row_data.append("")
-            row["answer"] = row["answer"] if row["answer"] is not None else ""
-            row_data.append(row["answer"])
-            row_data.append(row["discord_display_name"])
 
-    if len(results) > 0:
+async def gsheet(client, results, date):
+    sheet = get_sheet()
+
+    worksheet = sheet.worksheet(os.getenv('GOOGLE_WORKSHEET_NAME'))
+    print(f'worksheet: {worksheet}')
+
+    knock_moderators = False
+    row_data = []
+
+    for row in results:
+        row_data.append(f'{date}')
+        row_data.append(os.getenv('PROJECT'))
+        row_data.append(row["module"])
+        row_data.append(row["goal"])
+        row_data.append(row["updates"])
+        row_data.append(row["comments"])
+        row_data.append(row["discord_display_name"])
+
         worksheet.append_row(row_data)
+        knock_moderators = True
+        row_data.clear()
+        time.sleep(3)
+
+    if knock_moderators:
+        # send dm to (moderators) Kabir vaia and Swaradip vaia
+        moderators = os.getenv('MODERATORS')
+        if moderators:
+            moderator_list = moderators.split(',')
+            for moderator in moderator_list:
+                print(f"Moderator Discord ID: {moderator}")
+                user = await client.fetch_user(moderator)
+
+                msg = f'```md\n'
+                msg += f'There are some updates in [google sheet](https://docs.google.com/spreadsheets/d/{sheet_id}/).\n'
+                msg += f'Please check.\n'
+                msg += f'```\n'
+                await user.send(msg)
+                print(f"Moderator {user.name} was pinged.")
+        else:
+            print("No moderators found in the environment variable.")
