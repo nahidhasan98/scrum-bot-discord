@@ -4,6 +4,7 @@ import textwrap
 from dotenv import load_dotenv
 from config import db
 from service import users
+from service.logger import logger
 
 load_dotenv()
 
@@ -29,13 +30,12 @@ def get_mark(discord_user_id, date):
         if len(results) == 0:
             data = False
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.get_mark: {data}')
+        logger.info(f'def records.get_mark: {data}')
 
         return data
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
@@ -66,13 +66,12 @@ def set_mark(discord_user_id, date):
             cursor.execute(query, (date, discord_user_id))
             connection.commit()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.set_mark: done')
+        logger.info(f'def records.set_mark: done')
 
         return True
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
@@ -94,13 +93,12 @@ def save(data):
 
         connection.commit()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.save: {data}')
+        logger.info(f'def records.save: {data}')
 
         return True
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
@@ -129,13 +127,12 @@ def save_goal(data):
 
         connection.commit()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.save_goal: {data}')
+        logger.info(f'def records.save_goal: {data}')
 
         return True
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
@@ -155,13 +152,12 @@ def answer_close(row_id):
         cursor.execute(query, (row_id,))
         connection.commit()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.answer_closed: id= {row_id}')
+        logger.info(f'def records.answer_closed: id= {row_id}')
 
         return True
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
@@ -182,19 +178,19 @@ def get_per_user_status(date):
         cursor.execute(query, (date,))
         results = cursor.fetchall()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.get_per_user_status:')
-            for row in results:
-                print(textwrap.dedent(f'''
-                    id              : {row["id"]},
-                    count           : {row["count"]},
-                    discord_user_id : {row["discord_user_id"]}
-                '''))
+        logMsg = f'def records.get_per_user_status:\n'
+        for row in results:
+            logMsg += textwrap.dedent(f'''
+                id              : {row["id"]},
+                count           : {row["count"]},
+                discord_user_id : {row["discord_user_id"]}\n\n
+            ''')
+        logger.info(logMsg)
 
         return results
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
@@ -227,25 +223,25 @@ def get_user_records(date, discord_user_id=None):
 
         results = cursor.fetchall()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.get_user_records:')
-            for row in results:
-                print(textwrap.dedent(f'''
-                    id                      : {row["id"]},
-                    date                    : {row["date"]},
-                    user_id                 : {row["user_id"]},
-                    module                  : {row["module"]},
-                    goal                    : {row["goal"]},
-                    updates                 : {row["updates"]},
-                    comments                : {row["comments"]},
-                    has_started             : {row["has_started"]},
-                    discord_display_name    : {row["discord_display_name"]}
-                '''))
+        logMsg = f'def records.get_user_records:\n'
+        for row in results:
+            logMsg += textwrap.dedent(f'''
+                id                      : {row["id"]},
+                date                    : {row["date"]},
+                user_id                 : {row["user_id"]},
+                module                  : {row["module"]},
+                goal                    : {row["goal"]},
+                updates                 : {row["updates"]},
+                comments                : {row["comments"]},
+                has_started             : {row["has_started"]},
+                discord_display_name    : {row["discord_display_name"]}\n\n
+            ''')
+        logger.info(logMsg)
 
         return results
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
@@ -270,13 +266,12 @@ def reset(discord_user_id, date):
 
         connection.commit()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def records.reset: done')
+        logger.info(f'def records.reset: done')
 
         return True
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()

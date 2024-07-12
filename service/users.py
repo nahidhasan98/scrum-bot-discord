@@ -3,6 +3,7 @@ import sqlite3
 import textwrap
 from dotenv import load_dotenv
 from config import db
+from service.logger import logger
 
 load_dotenv()
 
@@ -30,26 +31,26 @@ def get(**kwargs):
 
         results = cursor.fetchall()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def users.get:')
-            for row in results:
-                print(textwrap.dedent(f'''
-                    id                      : {row["id"]},
-                    discord_username        : {row["discord_username"]},
-                    discord_user_id         : {row["discord_user_id"]},
-                    discord_display_name    : {row["discord_display_name"]}
-                '''))
+        logMsg = f'def users.get:\n'
+        for row in results:
+            logMsg += textwrap.dedent(f'''
+                id                      : {row["id"]},
+                discord_username        : {row["discord_username"]},
+                discord_user_id         : {row["discord_user_id"]},
+                discord_display_name    : {row["discord_display_name"]}\n\n
+            ''')
+        logger.info(logMsg)
 
         return results
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
 
 
-def save(data):
+def save(user):
     connection = db.get_db()
     try:
         connection.row_factory = sqlite3.Row
@@ -59,7 +60,7 @@ def save(data):
         WHERE discord_user_id = ?;
         """
 
-        cursor.execute(query, (data.id,))
+        cursor.execute(query, (user.id,))
         results = cursor.fetchall()
 
         if len(results) == 0:
@@ -68,26 +69,24 @@ def save(data):
             VALUES (?, ?, ?);
             """
 
-            cursor.execute(query, (data.name, data.global_name, data.id))
+            cursor.execute(query, (user.name, user.global_name, user.id))
             connection.commit()
 
             data = f'New users info inserted into Database.\n'
             data += textwrap.dedent(f'''
-                        discord_username        : {data.name},
-                        discord_user_id         : {data.global_name},
-                        discord_display_name    : {data.id}
+                        discord_username        : {user.name},
+                        discord_user_id         : {user.global_name},
+                        discord_display_name    : {user.id}
                     ''')
         else:
-            data = f'User({data.global_name}) info already exists in Database.'
+            data = f'User({user.global_name}) info already exists in Database.'
 
-        if os.getenv('MODE') == "dev":
-            print(f'def users.save:')
-            print(f'{data}')
+        logger.info(f'def users.save: {data}')
 
         return True
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()

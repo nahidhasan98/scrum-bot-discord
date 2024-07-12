@@ -3,11 +3,19 @@ import time
 import gspread
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv
-from service import records
+from service.logger import logger
 
 load_dotenv()
 
+if os.getenv('MODE') == "prod":
+    TODO_CHANNEL_ID = int(os.getenv('TODO_CHANNEL_ID_PROD'))
+    MODERATORS = os.getenv('MODERATORS_PROD')
+else:
+    TODO_CHANNEL_ID = int(os.getenv('TODO_CHANNEL_ID_DEV'))
+    MODERATORS = os.getenv('MODERATORS_DEV')
+
 sheet_id = os.getenv('GOOGLE_SHEET_ID')
+
 
 def prepare_final_message(counter, goal, updates, comments):
     msg = f'> What tasks have you been assigned for today?\n'
@@ -29,7 +37,7 @@ def prepare_final_message(counter, goal, updates, comments):
 
 
 async def discord_channel(client, results):
-    channel = client.get_channel(int(os.getenv('TODO_CHANNEL_ID')))
+    channel = client.get_channel(TODO_CHANNEL_ID)
 
     if channel:
         user_id = 0
@@ -85,7 +93,7 @@ async def gsheet(client, results, date):
     sheet = get_sheet()
 
     worksheet = sheet.worksheet(os.getenv('GOOGLE_WORKSHEET_NAME'))
-    print(f'worksheet: {worksheet}')
+    logger.info(f'worksheet: {worksheet}')
 
     knock_moderators = False
     row_data = []
@@ -106,11 +114,11 @@ async def gsheet(client, results, date):
 
     if knock_moderators:
         # send dm to (moderators) Kabir vaia and Swaradip vaia
-        moderators = os.getenv('MODERATORS')
+        moderators = MODERATORS
         if moderators:
             moderator_list = moderators.split(',')
             for moderator in moderator_list:
-                print(f"Moderator Discord ID: {moderator}")
+                logger.info(f"Moderator Discord ID: {moderator}")
                 user = await client.fetch_user(moderator)
 
                 msg = f'```md\n'
@@ -118,6 +126,6 @@ async def gsheet(client, results, date):
                 msg += f'Please check.\n'
                 msg += f'```\n'
                 await user.send(msg)
-                print(f"Moderator {user.name} was pinged.")
+                logger.info(f"Moderator {user.name} was pinged.")
         else:
-            print("No moderators found in the environment variable.")
+            logger.info("No moderators found in the environment variable.")

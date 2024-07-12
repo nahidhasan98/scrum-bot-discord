@@ -1,12 +1,13 @@
 import os
 import sqlite3
 from dotenv import load_dotenv
+from service.logger import logger
 
 load_dotenv()
 
 
 def get_db():
-    return sqlite3.connect(os.getenv("DB_NAME"))
+    return sqlite3.connect(os.getenv("DB_FILE"))
 
 
 def init():
@@ -64,7 +65,7 @@ def init():
             ]
             cursor.executemany(
                 "INSERT INTO questions (question, tag) VALUES (?, ?)", questions)
-            print("Initial questions inserted.")
+            logger.info("Initial questions inserted.")
 
         # Commit the changes
         connection.commit()
@@ -73,22 +74,24 @@ def init():
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
         if cursor.fetchone() is None:
-            print("Error: 'users' table was not created successfully.")
+            logger.error("Error: 'users' table was not created successfully.")
 
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='questions'")
         if cursor.fetchone() is None:
-            print("Error: 'questions' table was not created successfully.")
+            logger.error(
+                "Error: 'questions' table was not created successfully.")
 
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='records'")
         if cursor.fetchone() is None:
-            print("Error: 'records' table was not created successfully.")
+            logger.error(
+                "Error: 'records' table was not created successfully.")
 
-        print("Database initialized successfully.")
+        logger.info("Database initialized successfully.")
 
     except sqlite3.Error as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
 
     finally:
         connection.close()

@@ -5,9 +5,12 @@ from dotenv import load_dotenv
 import discord
 from discord.ext import tasks
 from service import users, questions, records, report
+from service.logger import logger
 from config import db
 
 load_dotenv()
+
+BOT_TOKEN = os.getenv('BOT_TOKEN_PROD')
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -19,12 +22,12 @@ db.init()
 def is_eligible(message):
     # Ignore messages sent by the bot itself
     if message.author == client.user:
-        print("bot is not eligible")
+        logger.info("bot is not eligible")
         return False
 
     # Check if the message is a DM sent to the bot
     if not isinstance(message.channel, discord.DMChannel):
-        print("message to channel is not eligible")
+        logger.info("message to channel is not eligible")
         return False
 
     return True
@@ -105,7 +108,7 @@ def get_question(message, question):
 
 @client.event
 async def on_ready():
-    print(f'{client.user.name} has connected to Discord!')
+    logger.info(f'{client.user.name} has connected to Discord!')
     auto_ping.start()
 
 
@@ -115,7 +118,7 @@ async def on_message(message):
         return
 
     users.save(message.author)
-    print(f'{message.author}: {message.content}')
+    logger.info(f'{message.author}: {message.content}')
 
     if message.content == "/reset":
         records.reset(message.author.id, datetime.date.today())
@@ -159,7 +162,7 @@ async def auto_ping():
                 user = await client.fetch_user(row["discord_user_id"])
 
                 await user.send(f'Hello **{row["discord_display_name"]}**, you didn\'t update your progress today. Please use **/update** command to update your progress.')
-                print(f"{user.name} was pinged.")
+                logger.info(f"{user.name} was pinged.")
 
     if now.hour == eleven_fifty_nine.hour and now.minute == eleven_fifty_nine.minute:
         results = records.get_user_records(datetime.date.today())
@@ -167,4 +170,4 @@ async def auto_ping():
         await report.gsheet(client, results, datetime.date.today())
 
 if __name__ == "__main__":
-    client.run(os.getenv('DISCORD_BOT_TOKEN'))
+    client.run(BOT_TOKEN)

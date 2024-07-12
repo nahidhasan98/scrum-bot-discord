@@ -3,6 +3,7 @@ import sqlite3
 import textwrap
 from dotenv import load_dotenv
 from config import db
+from service.logger import logger
 
 load_dotenv()
 
@@ -19,19 +20,19 @@ def get_all():
         cursor.execute(query)
         results = cursor.fetchall()
 
-        if os.getenv('MODE') == "dev":
-            print(f'def questions.get_all:')
-            for row in results:
-                print(textwrap.dedent(f'''
-                    id          : {row["id"]},
-                    question    : {row["question"]},
-                    tag         : {row["tag"]}
-                '''))
+        logMsg = f'def questions.get_all:\n'
+        for row in results:
+            logMsg += textwrap.dedent(f'''
+                id          : {row["id"]},
+                question    : {row["question"]},
+                tag         : {row["tag"]}\n\n
+            ''')
+        logger.info(logMsg)
 
         return results
 
     except (Exception) as error:
-        print(error)
+        logger.error(error)
 
     finally:
         connection.close()
