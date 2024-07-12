@@ -96,9 +96,10 @@ async def gsheet(client, results, date):
     logger.info(f'worksheet: {worksheet}')
 
     knock_moderators = False
-    row_data = []
+    rows_data = []
 
     for row in results:
+        row_data = []
         row_data.append(f'{date}')
         row_data.append(os.getenv('PROJECT'))
         row_data.append(row["module"])
@@ -107,10 +108,11 @@ async def gsheet(client, results, date):
         row_data.append(row["comments"])
         row_data.append(row["discord_display_name"])
 
-        worksheet.append_row(row_data)
+        rows_data.append(row_data)
+
+    if len(rows_data) > 0:
+        worksheet.append_rows(rows_data)
         knock_moderators = True
-        row_data.clear()
-        time.sleep(3)
 
     if knock_moderators:
         # send dm to (moderators) Kabir vaia and Swaradip vaia
