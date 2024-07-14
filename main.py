@@ -166,8 +166,8 @@ async def auto_ping():
 
     if now.hour == eleven_fifty_nine.hour and now.minute == eleven_fifty_nine.minute:
         results = records.get_user_records(datetime.date.today())
-        await report.discord_channel(client, results)
         await report.gsheet(client, results, datetime.date.today())
+        await report.discord_channel(client, results)
 
 if __name__ == "__main__":
     client.run(BOT_TOKEN)

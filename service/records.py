@@ -181,9 +181,10 @@ def get_per_user_status(date):
         logMsg = f'def records.get_per_user_status:\n'
         for row in results:
             logMsg += textwrap.dedent(f'''
-                id              : {row["id"]},
-                count           : {row["count"]},
-                discord_user_id : {row["discord_user_id"]}\n\n
+                id                      : {row["id"]},
+                discord_display_name    : {row["discord_display_name"]},
+                discord_user_id         : {row["discord_user_id"]},
+                has_started             : {row["has_started"]}\n\n
             ''')
         logger.info(logMsg)
 
