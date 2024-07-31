@@ -150,11 +150,10 @@ async def on_message(message):
 async def auto_ping():
     dhaka_tz = pytz.timezone('Asia/Dhaka')
     ten_o_clock = datetime.time(hour=22, minute=00, tzinfo=dhaka_tz)
-    eleven_o_clock = datetime.time(hour=23, minute=00, tzinfo=dhaka_tz)
     eleven_fifty_nine = datetime.time(hour=23, minute=59, tzinfo=dhaka_tz)
     now = datetime.datetime.now(dhaka_tz).time()
 
-    if (now.hour == ten_o_clock.hour and now.minute == ten_o_clock.minute) or (now.hour == eleven_o_clock.hour and now.minute == eleven_o_clock.minute):
+    if (now.hour == ten_o_clock.hour and now.minute == ten_o_clock.minute):
         results = records.get_per_user_status(datetime.date.today())
 
         for row in results:
